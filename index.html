@@ -118,43 +118,115 @@
       color: #666;
       margin-top: 20px;
     }
+
+    .booking-page {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .booking-page h2 {
+      margin-top: 20px;
+    }
+
+    .booking-page p {
+      margin: 10px 0;
+    }
+
+    .back-button {
+      background: #66a6ff;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+
+    .back-button:hover {
+      background: #5595ff;
+    }
   </style>
 </head>
 <body>
   <div class="phone-screen">
-    <div class="header">DroneConnect</div>
-    <div class="subheader">Affordable Drone Services at Your Fingertips</div>
-    <input type="text" class="search-bar" placeholder="Search for drone operators...">
-    <div class="drone-list">
-      <div class="drone-card">
-        <img src="alex.png" alt="Drone Image">
-        <div class="drone-info">
-          <div class="drone-name">John's Drones</div>
-          <div class="drone-rating">★★★★☆ (4.2)</div>
-          <div class="drone-price">$50/hour</div>
+    <!-- Main Page -->
+    <div id="main-page">
+      <div class="header">DroneConnect</div>
+      <div class="subheader">Affordable Drone Services at Your Fingertips</div>
+      <input type="text" id="search-bar" class="search-bar" placeholder="Search for drone operators..." oninput="filterDrones()">
+      <div class="drone-list" id="drone-list">
+        <div class="drone-card" data-name="John's Drones">
+          <img src="alex.png" alt="Drone Image">
+          <div class="drone-info">
+            <div class="drone-name">John's Drones</div>
+            <div class="drone-rating">★★★★☆ (4.2)</div>
+            <div class="drone-price">$50/hour</div>
+          </div>
+          <button class="book-button" onclick="showBookingPage('John\'s Drones', '$50/hour', '★★★★☆ (4.2)')">Book</button>
         </div>
-        <button class="book-button">Book</button>
-      </div>
-      <div class="drone-card">
-        <img src="ray.png" alt="Drone Image">
-        <div class="drone-info">
-          <div class="drone-name">SkyHigh Drones</div>
-          <div class="drone-rating">★★★★★ (5.0)</div>
-          <div class="drone-price">$70/hour</div>
+        <div class="drone-card" data-name="SkyHigh Drones">
+          <img src="ray.png" alt="Drone Image">
+          <div class="drone-info">
+            <div class="drone-name">SkyHigh Drones</div>
+            <div class="drone-rating">★★★★★ (5.0)</div>
+            <div class="drone-price">$70/hour</div>
+          </div>
+          <button class="book-button" onclick="showBookingPage('SkyHigh Drones', '$70/hour', '★★★★★ (5.0)')">Book</button>
         </div>
-        <button class="book-button">Book</button>
-      </div>
-      <div class="drone-card">
-        <img src="steve.png" alt="Drone Image">
-        <div class="drone-info">
-          <div class="drone-name">AeroVision</div>
-          <div class="drone-rating">★★★☆☆ (3.8)</div>
-          <div class="drone-price">$45/hour</div>
+        <div class="drone-card" data-name="AeroVision">
+          <img src="steve.png" alt="Drone Image">
+          <div class="drone-info">
+            <div class="drone-name">AeroVision</div>
+            <div class="drone-rating">★★★☆☆ (3.8)</div>
+            <div class="drone-price">$45/hour</div>
+          </div>
+          <button class="book-button" onclick="showBookingPage('AeroVision', '$45/hour', '★★★☆☆ (3.8)')">Book</button>
         </div>
-        <button class="book-button">Book</button>
       </div>
+      <div class="footer">© 2025 DroneConnect. All rights reserved.</div>
     </div>
-    <div class="footer">© 2025 DroneConnect. All rights reserved.</div>
+
+    <!-- Booking Page -->
+    <div id="booking-page" class="booking-page">
+      <h2 id="booking-name"></h2>
+      <p id="booking-price"></p>
+      <p id="booking-rating"></p>
+      <button class="back-button" onclick="goBack()">Back to Main</button>
+    </div>
   </div>
+
+  <script>
+    // Function to show booking page
+    function showBookingPage(name, price, rating) {
+      document.getElementById('main-page').style.display = 'none';
+      document.getElementById('booking-page').style.display = 'flex';
+      document.getElementById('booking-name').innerText = name;
+      document.getElementById('booking-price').innerText = `Price: ${price}`;
+      document.getElementById('booking-rating').innerText = `Rating: ${rating}`;
+    }
+
+    // Function to go back to main page
+    function goBack() {
+      document.getElementById('main-page').style.display = 'flex';
+      document.getElementById('booking-page').style.display = 'none';
+    }
+
+    // Function to filter drones based on search input
+    function filterDrones() {
+      const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+      const droneCards = document.querySelectorAll('.drone-card');
+      droneCards.forEach(card => {
+        const droneName = card.getAttribute('data-name').toLowerCase();
+        if (droneName.includes(searchTerm)) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
 </body>
 </html>
