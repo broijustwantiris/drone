@@ -208,10 +208,9 @@
       document.getElementById('booking-rating').innerText = `Rating: ${rating}`;
     }
 
-    // Function to go back to main page
+    // Function to go back to main page and refresh
     function goBack() {
-      document.getElementById('main-page').style.display = 'flex';
-      document.getElementById('booking-page').style.display = 'none';
+      location.reload(); // Refresh the page
     }
 
     // Function to filter drones based on search input
