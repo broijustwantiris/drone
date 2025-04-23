@@ -1,213 +1,385 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Drone Connect</title>
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous" />
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    crossorigin="anonymous"
+  />
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet/dist/leaflet.css"
+  />
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body, html { width: 100%; height: 100%; font-family: 'Segoe UI', Tahoma, Verdana, sans-serif; }
-    body { display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #ece9e6, #ffffff); }
-    .container { width: 100%; max-width: 375px; height: 100%; background: #fff; display: flex; flex-direction: column; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
-    header { background: linear-gradient(135deg, #4A90E2, #9013FE); color: #fff; padding: 1rem; text-align: center; font-size: 1.4rem; font-weight: bold; }
-    #hero { flex-shrink: 0; background: url('https://source.unsplash.com/featured/375x150?drone,sky') center/cover no-repeat; padding: 1.5rem; text-align: center; color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.7); }
-    #hero h1 { font-size: 1.6rem; margin-bottom: 0.5rem; }
-    #hero p { font-size: 1rem; }
-    main { flex: 1; overflow-y: auto; padding: 1rem; }
-    .section { margin-bottom: 1.5rem; }
-    .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
-    .card { background: #f0f4f7; padding: 0.75rem; border-radius: 12px; text-align: center; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
-    .card:hover { transform: translateY(-4px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .hidden { display: none; }
-    .pilot-list { list-style: none; padding: 0; }
-    .pilot-item { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; border-bottom: 1px solid #e0e6ed; cursor: pointer; transition: background 0.2s; }
-    .pilot-item:hover { background: #f7f9fb; }
-    .pilot-info { display: flex; align-items: center; }
-    .pilot-img { width: 40px; height: 40px; border-radius: 50%; margin-right: 0.75rem; object-fit: cover; }
-    .pilot-name { font-weight: 500; }
-    .pilot-rating { color: #f1c40f; font-weight: bold; }
-    .search-input { width: 100%; padding: 0.5rem; margin-bottom: 0.75rem; border: 1px solid #ccc; border-radius: 6px; }
-    .payment-options label { display: block; margin-bottom: 0.75rem; font-weight: 500; }
-    button { width: 100%; padding: 0.75rem; margin-top: 0.5rem; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: transform 0.1s, opacity 0.2s; }
-    button.primary { background: #4A90E2; color: #fff; }
-    button.secondary { background: #fff; color: #4A90E2; border: 2px solid #4A90E2; }
-    button:hover { opacity: 0.9; transform: translateY(-2px); }
-    footer { text-align: center; font-size: 0.75rem; color: #888; padding: 0.75rem; }
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; padding: 1rem; z-index: 100; }
-    .modal-overlay.hidden { display: none; }
-    .modal { background: #fff; width: 100%; max-width: 320px; padding: 1.5rem; border-radius: 12px; position: relative; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
-    .modal h3 { margin-bottom: 0.5rem; font-size: 1.2rem; }
-    .modal p { margin-bottom: 0.75rem; font-size: 0.95rem; }
-    .modal-img { width: 80px; height: 80px; border-radius: 50%; display: block; margin: 0 auto 1rem; object-fit: cover; }
-    .close-btn { position: absolute; top: 0.5rem; right: 0.5rem; background: transparent; border: none; font-size: 1.4rem; cursor: pointer; color: #333; }
+    body, html { width:100%; height:100%; font-family:'Segoe UI','Helvetica Neue',sans-serif; }
+    body { display:flex; justify-content:center; align-items:start; background:#f4f7fa; padding:1rem; }
+    .container { width:100%; max-width:375px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.1); display:flex; flex-direction:column; }
+    header { background:linear-gradient(135deg,#4A90E2,#9013FE); color:#fff; padding:1rem; text-align:center; font-size:1.25rem; }
+    main { flex:1; overflow-y:auto; padding:1rem; }
+    .controls { display:flex; flex-wrap:wrap; gap:.5rem; margin-bottom:1rem; }
+    .controls select, .controls input, .controls button { flex:1; min-width:70px; padding:.5rem; border:1px solid #ccc; border-radius:6px; }
+    .controls input[type=range] { width:100%; }
+    .controls button { background:#fff; color:#4A90E2; border:1px solid #4A90E2; }
+    ul.pilot-list { list-style:none; padding:0; margin:0; }
+    .pilot-item { display:flex; align-items:center; justify-content:space-between; padding:.75rem; border-bottom:1px solid #e0e6ed; cursor:pointer; }
+    .pilot-item:hover { background:#f0f4f9; }
+    .pilot-info { display:flex; align-items:center; }
+    .pilot-img { width:40px; height:40px; border-radius:50%; margin-right:.75rem; object-fit:cover; }
+    .pilot-text { display:flex; flex-direction:column; }
+    .pilot-name { font-weight:500; }
+    .pilot-services,.pilot-reviews,.pilot-distance { font-size:.75rem; color:#888; }
+    .pilot-rating { color:#f1c40f; font-weight:bold; margin-left:.5rem; }
+    .favorite-btn { background:none; border:none; color:#ccc; font-size:1.2rem; cursor:pointer; }
+    .favorite-btn.active { color:#e74c3c; }
+    .pagination { display:flex; justify-content:space-between; margin-top:1rem; }
+    .pagination button { flex:1; margin:0 .25rem; padding:.5rem; border:none; border-radius:6px; background:#4A90E2; color:#fff; }
+
+    /* MODAL OVERLAY */
+    .modal-overlay {
+      position:fixed; top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,0.6);
+      display:none;
+      justify-content:center;
+      align-items:center;
+      overflow-y:auto; /* allow scrolling */
+      padding:1rem;
+    }
+    .modal-overlay.active { display:flex; }
+
+    /* MODAL BOX */
+    .modal {
+      background:#fff;
+      width:90%; max-width:320px;
+      max-height:90vh;   /* never exceed viewport */
+      padding:1rem;
+      border-radius:10px;
+      position:relative;
+      overflow-y:auto;   /* scroll internal content */
+    }
+    .modal img { width:80px; height:80px; border-radius:50%; margin:0 auto 1rem; display:block; }
+    .close-btn { position:absolute; top:.5rem; right:.5rem; background:none; border:none; font-size:1.4rem; cursor:pointer; }
+    #map { height:150px; margin:1rem 0; border-radius:8px; }
+    .modal-time, .modal-textarea, .modal-date { width:100%; padding:.5rem; margin-bottom:.5rem; border:1px solid #ccc; border-radius:6px; }
+    .chat-window { height:100px; overflow-y:auto; border:1px solid #ccc; padding:.5rem; border-radius:6px; margin-bottom:.5rem; }
+    .chat-msg { margin-bottom:.25rem; }
+    button.primary { width:100%; padding:.75rem; border:none; border-radius:8px; background:#4A90E2; color:#fff; font-size:1rem; cursor:pointer; }
+    button.secondary { width:100%; padding:.75rem; border:none; border-radius:8px; background:#fff; color:#4A90E2; font-size:1rem; cursor:pointer; margin-top:.5rem; }
+    footer { text-align:center; padding:.75rem; font-size:.75rem; color:#888; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>Drone Connect</header>
-    <div id="hero">
-      <h1>Find Your Drone Pilot</h1>
-      <p>Professional aerial services at your fingertips</p>
-    </div>
     <main>
-      <section id="services" class="section">
-        <h2>Select a Service</h2>
-        <div class="cards">
-          <div class="card" data-service="Photography"><i class="fas fa-camera"></i><br/>Photography</div>
-          <div class="card" data-service="Real Estate"><i class="fas fa-home"></i><br/>Real Estate</div>
-          <div class="card" data-service="Agriculture"><i class="fas fa-tractor"></i><br/>Agriculture</div>
-          <div class="card" data-service="Mapping"><i class="fas fa-map"></i><br/>Mapping</div>
+      <div class="controls">
+        <select id="service-filter">
+          <option value="All">All Services</option>
+          <option>Photography</option>
+          <option>Real Estate</option>
+          <option>Agriculture</option>
+          <option>Mapping</option>
+        </select>
+        <select id="sort-select">
+          <option value="rating">Sort by Rating</option>
+          <option value="name">Sort by Name</option>
+          <option value="distance">Sort by Distance</option>
+        </select>
+        <input type="number" id="min-rating" min="1" max="10" placeholder="Min Rating"/>
+        <input type="text" id="name-search" placeholder="Search Name"/>
+        <div style="flex:1;display:flex;flex-direction:column;">
+          <label for="radius" style="font-size:.75rem;">
+            Max Distance (km): <span id="radius-val">20000</span>
+          </label>
+          <input type="range" id="radius" min="1" max="20000" value="20000"/>
         </div>
-      </section>
-      <section id="pilots" class="section hidden">
-        <h2>Choose a Pilot (<span id="selected-service"></span>)</h2>
-        <input type="text" id="pilot-search" class="search-input" placeholder="Search pilots..." />
-        <ul class="pilot-list" id="pilot-list"></ul>
-        <button class="secondary" id="back-to-services">Back</button>
-      </section>
-      <section id="payment" class="section hidden">
-        <h2>Payment for <span id="pay-pilot"></span></h2>
-        <div id="payment-options" class="payment-options"></div>
-        <button class="primary" id="confirm-payment">Confirm & Pay</button>
-        <button class="secondary" id="back-to-pilots">Back</button>
-      </section>
+        <button id="fav-filter">Show Favorites</button>
+      </div>
+      <ul id="pilot-list" class="pilot-list"></ul>
+      <div class="pagination">
+        <button id="prev-page"><i class="fas fa-chevron-left"></i></button>
+        <button id="next-page"><i class="fas fa-chevron-right"></i></button>
+      </div>
     </main>
     <footer>&copy; 2025 Drone Connect</footer>
   </div>
-  <div id="modal-overlay" class="modal-overlay hidden">
+
+  <div id="modal-overlay" class="modal-overlay">
     <div class="modal">
       <button class="close-btn" id="modal-close"><i class="fas fa-times"></i></button>
-      <img id="modal-img" class="modal-img" src="" alt="Pilot" />
+      <img id="modal-img" src="" alt="Pilot"/>
       <h3 id="modal-name"></h3>
-      <p id="modal-services"></p>
       <p id="modal-bio"></p>
-      <button class="primary" id="select-pay">Select & Pay</button>
+      <p><strong>Services:</strong> <span id="modal-services"></span></p>
+      <p><strong>Reviews:</strong> <span id="modal-reviews"></span></p>
+      <label for="booking-date">Choose Date:</label>
+      <input type="date" id="booking-date" class="modal-date"/>
+      <label for="availability">Choose Time:</label>
+      <select id="availability" class="modal-time"></select>
+      <div id="map"></div>
+      <div id="chat-window" class="chat-window"></div>
+      <input type="text" id="chat-input" class="modal-time" placeholder="Type message..."/>
+      <button id="send-chat" class="secondary">Send</button>
+      <label for="review-rating">Your Rating:</label>
+      <select id="review-rating" class="modal-time">
+        <!-- 1–10 -->
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="5">5</option><option value="6">6</option>
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="10">10</option>
+      </select>
+      <textarea id="review-input" class="modal-textarea" placeholder="Leave a comment..."></textarea>
+      <button id="submit-review" class="secondary">Submit Review</button>
+      <button id="confirm-booking" class="primary">Confirm Booking</button>
     </div>
   </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
   <script>
-    const imageMap = {
-      // Chinese pilots
-      "Li Wei": "https://media.npr.org/assets/img/2023/03/10/ap23069161110805-4ab6d4a00e031d406a9046e38f71bb8a6c53fb0e.jpg",
-      "Chen Ming": "https://media.npr.org/assets/img/2023/03/10/ap23069161110805-4ab6d4a00e031d406a9046e38f71bb8a6c53fb0e.jpg",
-      "Zhang Wei": "https://media.npr.org/assets/img/2023/03/10/ap23069161110805-4ab6d4a00e031d406a9046e38f71bb8a6c53fb0e.jpg",
-      "Liu Yang": "https://media.npr.org/assets/img/2023/03/10/ap23069161110805-4ab6d4a00e031d406a9046e38f71bb8a6c53fb0e.jpg",
-      "Wang Hao": "https://media.npr.org/assets/img/2023/03/10/ap23069161110805-4ab6d4a00e031d406a9046e38f71bb8a6c53fb0e.jpg",
-      // African pilots
-      "Kwame Mensah": "https://charts-static.billboard.com/img/2019/05/kingvon-9tq-344x344.jpg",
-      "Amadou Diop": "https://charts-static.billboard.com/img/2019/05/kingvon-9tq-344x344.jpg",
-      "Sibusiso Khumalo": "https://charts-static.billboard.com/img/2019/05/kingvon-9tq-344x344.jpg",
-      // All others default image
-      "Omar Al-Sayed": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Ahmed Mohammed": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Lars Hansen": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Erik Johansen": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "James Hetfield": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Lars Ulrich": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Kirk Hammett": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Robert Trujillo": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Philip Anselmo": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Dimebag Darrell": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Vinnie Paul": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Rex Brown": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Dave Mustaine": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "David Ellefson": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Kiko Loureiro": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Dirk Verbeuren": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Layne Staley": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Jerry Cantrell": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Sean Kinney": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Mike Inez": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg",
-      "Kenneth Pinyan": "https://ei.phncdn.com/pics/users/default/pornhub/(m=bJWsSeKlbyaT)(mh=4N6NZAtseWL0p9UF)male.jpg"
-    };
-    const pilots = [
-      // Multicultural pilots
-      { name: "Li Wei", rating: 2.2, bio: "Expert in cinematic drone shots.", services: ["Photography","Real Estate"] },
-      { name: "Chen Ming", rating: 1.8, bio: "Mapping specialist with 5 years experience.", services: ["Photography","Mapping"] },
-      { name: "Zhang Wei", rating: 1.6, bio: "Agriculture analysis using NDVI.", services: ["Photography","Agriculture"] },
-      { name: "Liu Yang", rating: 2.4, bio: "Survey pilot for large-scale mapping.", services: ["Photography","Mapping"] },
-      { name: "Wang Hao", rating: 1.9, bio: "Real estate drone imaging pro.", services: ["Photography","Real Estate"] },
-      { name: "Omar Al-Sayed", rating: 2.3, bio: "High-res inspection services.", services: ["Photography","Agriculture"] },
-      { name: "Ahmed Mohammed", rating: 1.8, bio: "Real estate and farm imaging.", services: ["Agriculture","Real Estate"] },
-      { name: "Kwame Mensah", rating: 2.1, bio: "Top-rated aerial realtor.", services: ["Real Estate","Mapping"] },
-      { name: "Amadou Diop", rating: 1.7, bio: "Precision agriculture and crop monitoring.", services: ["Real Estate","Agriculture"] },
-      { name: "Sibusiso Khumalo", rating: 2.0, bio: "Field mapping expert.", services: ["Agriculture","Mapping"] },
-      { name: "Lars Hansen", rating: 1.5, bio: "Mapping across rugged terrain.", services: ["Agriculture","Mapping"] },
-      { name: "Erik Johansen", rating: 2.2, bio: "Aerial photography for property listings.", services: ["Real Estate","Mapping"] },
-      // Band members & others
-      { name: "James Hetfield", rating: 2.5, bio: "Photography legend.", services: ["Photography"] },
-      { name: "Lars Ulrich", rating: 2.3, bio: "Real estate mapping.", services: ["Real Estate"] },
-      { name: "Kirk Hammett", rating: 2.1, bio: "Aerial agriculture guru.", services: ["Agriculture"] },
-      { name: "Robert Trujillo", rating: 1.9, bio: "Precision mapping expert.", services: ["Mapping"] },
-      { name: "Philip Anselmo", rating: 2.4, bio: "Drone rockstar.", services: ["Photography","Mapping"] },
-      { name: "Dimebag Darrell", rating: 2.2, bio: "Real estate showcase pro.", services: ["Real Estate"] },
-      { name: "Vinnie Paul", rating: 2.0, bio: "Agricultural drone data.", services: ["Agriculture"] },
-      { name: "Rex Brown", rating: 1.8, bio: "Survey and mapping.", services: ["Mapping"] },
-      { name: "Dave Mustaine", rating: 2.6, bio: "Drone metal cinematics.", services: ["Photography"] },
-      { name: "David Ellefson", rating: 2.3, bio: "Real estate panoramas.", services: ["Real Estate"] },
-      { name: "Kiko Loureiro", rating: 2.0, bio: "Agricultural imaging.", services: ["Agriculture"] },
-      { name: "Dirk Verbeuren", rating: 1.7, bio: "High-detail mapping.", services: ["Mapping"] },
-      { name: "Layne Staley", rating: 2.8, bio: "Photography soulful shots.", services: ["Photography"] },
-      { name: "Jerry Cantrell", rating: 2.5, bio: "Estate drone tours.", services: ["Real Estate"] },
-      { name: "Sean Kinney", rating: 2.2, bio: "Crop health monitoring.", services: ["Agriculture"] },
-      { name: "Mike Inez", rating: 1.9, bio: "Topographic mapping.", services: ["Mapping"] },
-      { name: "Kenneth Pinyan", rating: 1.5, bio: "Extreme angle specialist.", services: ["Photography","Mapping"] }
-    ];
-    const paymentMethods = ["Crypto","Affirm","Wire Transfer"];
+    document.addEventListener('DOMContentLoaded', () => {
+      // ELEMENTS
+      const overlay = document.getElementById('modal-overlay');
+      const listEl    = document.getElementById('pilot-list');
+      const srvFilter = document.getElementById('service-filter');
+      const sortSel   = document.getElementById('sort-select');
+      const minRat    = document.getElementById('min-rating');
+      const nameSrc   = document.getElementById('name-search');
+      const radiusIn  = document.getElementById('radius');
+      const radiusVal = document.getElementById('radius-val');
+      const favBtn    = document.getElementById('fav-filter');
+      const closeBtn  = document.getElementById('modal-close');
+      const nameEl    = document.getElementById('modal-name');
+      const bioEl     = document.getElementById('modal-bio');
+      const servEl    = document.getElementById('modal-services');
+      const revEl     = document.getElementById('modal-reviews');
+      const dateIn    = document.getElementById('booking-date');
+      const timeSel   = document.getElementById('availability');
+      const mapDiv    = document.getElementById('map');
+      const chatWin   = document.getElementById('chat-window');
+      const chatIn    = document.getElementById('chat-input');
+      const sendBtn   = document.getElementById('send-chat');
+      const rateSel   = document.getElementById('review-rating');
+      const revIn     = document.getElementById('review-input');
+      const revBtn    = document.getElementById('submit-review');
+      const bookBtn   = document.getElementById('confirm-booking');
 
-    const sections = { services: document.getElementById('services'), pilots: document.getElementById('pilots'), payment: document.getElementById('payment') };
-    const selectedServiceEl = document.getElementById('selected-service');
-    const pilotListEl = document.getElementById('pilot-list');
-    const searchInput = document.getElementById('pilot-search');
-    const modalOverlay = document.getElementById('modal-overlay');
-    const modalName = document.getElementById('modal-name');
-    const modalServices = document.getElementById('modal-services');
-    const modalBio = document.getElementById('modal-bio');
-    const modalImg = document.getElementById('modal-img');
-    const selectPayBtn = document.getElementById('select-pay');
-    let currentPilot = null;
+      // DATA & STATE
+      const defaultImages = [
+        "https://m.media-amazon.com/images/I/51mP+YxCxwL.jpg",
+        "https://preview.redd.it/cm7v4jwetbt21.png?auto=webp&s=d878127104274f03ad7f495e20bb7d09e6f090e5",
+        "https://charts-static.billboard.com/img/2019/05/kingvon-9tq-344x344.jpg"
+      ];
+      const basePilots = [
+        { name:"Li Wei", rating:2.2, bio:"Expert in cinematic drone shots.", reviews:12, services:["Photography","Mapping"], coords:[39.9042,116.4074], availability:["09:00","13:00","17:00"] },
+        { name:"Chen Ming", rating:1.8, bio:"Mapping specialist.", reviews:8, services:["Mapping"], coords:[31.2304,121.4737], availability:["10:00","14:00","18:00"] },
+        { name:"Zhang Wei", rating:1.6, bio:"Agriculture analysis.", reviews:5, services:["Agriculture"], coords:[23.1291,113.2644], availability:["09:00","13:00","17:00"] },
+        { name:"Liu Yang", rating:2.4, bio:"Survey pilot.", reviews:20, services:["Photography","Real Estate"], coords:[39.9042,116.4074], availability:["11:00","15:00","19:00"] },
+        { name:"Wang Hao", rating:1.9, bio:"Real estate imaging.", reviews:14, services:["Real Estate"], coords:[31.2304,121.4737], availability:["09:00","13:00","17:00"] },
+        { name:"Omar Al-Sayed", rating:2.3, bio:"High-res inspection.", reviews:10, services:["Photography","Agriculture"], coords:[24.4667,54.3667], availability:["08:00","12:00","16:00"] },
+        { name:"Ahmed Mohammed", rating:1.8, bio:"Farm imaging.", reviews:9, services:["Agriculture","Real Estate"], coords:[24.4667,54.3667], availability:["10:00","14:00","18:00"] },
+        { name:"Kwame Mensah", rating:2.1, bio:"Aerial realtor.", reviews:15, services:["Real Estate","Mapping"], coords:[5.6037,-0.1870], availability:["09:00","13:00","17:00"] },
+        { name:"Amadou Diop", rating:1.7, bio:"Crop monitoring.", reviews:7, services:["Agriculture"], coords:[14.7167,-17.4677], availability:["11:00","15:00","19:00"] },
+        { name:"Sibusiso Khumalo", rating:2.0, bio:"Field mapping.", reviews:12, services:["Agriculture","Mapping"], coords:[-26.2041,28.0473], availability:["08:00","12:00","16:00"] },
+        { name:"Lars Hansen", rating:1.5, bio:"Terrain mapping.", reviews:6, services:["Mapping"], coords:[59.9139,10.7522], availability:["09:00","13:00","17:00"] },
+        { name:"Erik Johansen", rating:2.2, bio:"Property photography.", reviews:11, services:["Real Estate","Photography"], coords:[60.4720,8.4689], availability:["10:00","14:00","18:00"] },
+        { name:"James Hetfield", rating:2.5, bio:"Photography legend.", reviews:25, services:["Photography"], coords:[37.7752,-122.4128], availability:["09:00","13:00","17:00"] },
+        { name:"Lars Ulrich", rating:2.3, bio:"Real estate mapping.", reviews:18, services:["Real Estate"], coords:[55.6761,12.5683], availability:["10:00","14:00","18:00"] },
+        { name:"Kirk Hammett", rating:2.1, bio:"Agriculture guru.", reviews:13, services:["Agriculture"], coords:[37.4419,-122.1430], availability:["08:00","12:00","16:00"] },
+        { name:"Robert Trujillo", rating:1.9, bio:"Precision mapping.", reviews:9, services:["Mapping"], coords:[34.0522,-118.2437], availability:["09:00","13:00","17:00"] },
+        { name:"Philip Anselmo", rating:2.4, bio:"Drone rockstar.", reviews:20, services:["Photography","Mapping"], coords:[29.9511,-90.0715], availability:["10:00","14:00","18:00"] },
+        { name:"Dimebag Darrell", rating:2.2, bio:"Showcase pro.", reviews:17, services:["Real Estate"], coords:[32.7767,-96.7970], availability:["09:00","13:00","17:00"] },
+        { name:"Vinnie Paul", rating:2.0, bio:"Drone data.", reviews:14, services:["Agriculture"], coords:[32.7767,-96.7970], availability:["08:00","12:00","16:00"] },
+        { name:"Rex Brown", rating:1.8, bio:"Survey mapping.", reviews:8, services:["Mapping"], coords:[35.4676,-97.5164], availability:["09:00","13:00","17:00"] },
+        { name:"Dave Mustaine", rating:2.6, bio:"Metal cinematics.", reviews:22, services:["Photography"], coords:[37.7749,-122.4194], availability:["10:00","14:00","18:00"] },
+        { name:"David Ellefson", rating:2.3, bio:"Estate panoramas.", reviews:16, services:["Real Estate"], coords:[33.7490,-84.3880], availability:["09:00","13:00","17:00"] },
+        { name:"Kiko Loureiro", rating:2.0, bio:"Ag imaging.", reviews:12, services:["Agriculture"], coords:[-23.5505,-46.6333], availability:["08:00","12:00","16:00"] },
+        { name:"Dirk Verbeuren", rating:1.7, bio:"Detail mapping.", reviews:7, services:["Mapping"], coords:[50.8503,4.3517], availability:["09:00","13:00","17:00"] },
+        { name:"Layne Staley", rating:2.8, bio:"Soulful shots.", reviews:30, services:["Photography"], coords:[47.6062,-122.3321], availability:["10:00","14:00","18:00"] },
+        { name:"Jerry Cantrell", rating:2.5, bio:"Drone tours.", reviews:19, services:["Real Estate"], coords:[47.6062,-122.3321], availability:["09:00","13:00","17:00"] },
+        { name:"Sean Kinney", rating:2.2, bio:"Crop monitoring.", reviews:14, services:["Agriculture"], coords:[47.6062,-122.3321], availability:["08:00","12:00","16:00"] },
+        { name:"Mike Inez", rating:1.9, bio:"Topographic mapping.", reviews:11, services:["Mapping"], coords:[47.6062,-122.3321], availability:["09:00","13:00","17:00"] },
+        { name:"Kenneth Pinyan", rating:1.5, bio:"Angle specialist.", reviews:6, services:["Photography","Mapping"], coords:[49.2827,-123.1207], availability:["10:00","14:00","18:00"] }
+      ];
+      const pilots = JSON.parse(JSON.stringify(basePilots));
 
-    function showSection(name) { Object.values(sections).forEach(sec => sec.classList.add('hidden')); sections[name].classList.remove('hidden'); }
-    function renderPilots(filter = '') {
-      pilotListEl.innerHTML = '';
-      pilots.filter(p => p.services.includes(selectedServiceEl.textContent) && p.name.toLowerCase().includes(filter.toLowerCase()))
-        .forEach(p => {
-          const li = document.createElement('li');
-          li.className = 'pilot-item';
-          const imgUrl = imageMap[p.name] || '';
-          // Build pilot entry
-          li.innerHTML = `
+      let favorites   = JSON.parse(localStorage.getItem('favorites')||'[]');
+      let chatHistory = JSON.parse(localStorage.getItem('chatHistory')||'{}');
+      let userCoords  = null, page=0, perPage=5, showFav=false, current=null;
+      let map, marker;
+
+      // UTILS
+      function computeDistance([lat1,lng1],[lat2,lng2]){
+        const toRad = d=>d*Math.PI/180;
+        const R=6371;
+        const dLat=toRad(lat2-lat1), dLng=toRad(lng2-lng1);
+        const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+        const c=2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+        return R*c;
+      }
+
+      // GEOLOCATION
+      if(navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(p=>{
+          userCoords=[p.coords.latitude,p.coords.longitude];
+          render();
+        });
+      }
+
+      // RENDER LIST
+      function render(){
+        listEl.innerHTML='';
+        let arr = pilots.map(p=>{
+          const saved = JSON.parse(localStorage.getItem('reviews_'+p.name)||'[]');
+          const totalBase=p.reviews, baseSum=p.rating*p.reviews;
+          const savedSum=saved.reduce((s,r)=>s+r.rating,0), totalRev=totalBase+saved.length;
+          const avg= totalRev?(baseSum+savedSum)/totalRev:0;
+          return {...p, reviews:totalRev, rating:avg};
+        });
+        arr=arr.filter(p=>p.rating>=(minRat.value||0));
+        arr=arr.filter(p=>p.name.toLowerCase().includes(nameSrc.value.toLowerCase()));
+        if(srvFilter.value!=='All') arr=arr.filter(p=>p.services.includes(srvFilter.value));
+        if(showFav) arr=arr.filter(p=>favorites.includes(p.name));
+        if(userCoords){
+          arr=arr.map(p=>({...p,distance:computeDistance(userCoords,p.coords)}))
+                 .filter(p=>p.distance<=radiusIn.value);
+        }
+        if(sortSel.value==='rating') arr.sort((a,b)=>b.rating-a.rating);
+        if(sortSel.value==='name')   arr.sort((a,b)=>a.name.localeCompare(b.name));
+        if(sortSel.value==='distance'&&userCoords) arr.sort((a,b)=>a.distance-b.distance);
+
+        const pageItems = arr.slice(page*perPage,(page+1)*perPage);
+        pageItems.forEach((p,i)=>{
+          const li=document.createElement('li');
+          li.className='pilot-item';
+          const imgUrl=defaultImages[i%defaultImages.length];
+          const favCls=favorites.includes(p.name)?'active':'';
+          li.innerHTML=`
             <div class="pilot-info">
               <img src="${imgUrl}" class="pilot-img" alt="${p.name}" />
-              <span class="pilot-name">${p.name}</span>
+              <div class="pilot-text">
+                <span class="pilot-name">${p.name}</span>
+                <span class="pilot-services">${p.services.join(', ')}</span>
+                <span class="pilot-reviews">${p.reviews} reviews</span>
+                ${userCoords?`<span class="pilot-distance">${p.distance.toFixed(1)} km away</span>`:''}
+              </div>
             </div>
-            <span class="pilot-rating">${p.rating}/10 <i class="fas fa-star"></i></span>
-          `;
-          // Attach error handler for pilot list images
-          const pilotImgEl = li.querySelector('.pilot-img');
-          if (pilotImgEl) {
-            pilotImgEl.onerror = () => { pilotImgEl.src = 'https://via.placeholder.com/80?text=Pilot'; };
-          }
-          li.onclick = () => openModal(p);
-          pilotListEl.appendChild(li);
+            <div>
+              <span class="pilot-rating">${p.rating.toFixed(1)}/10</span>
+              <button class="favorite-btn ${favCls}" data-name="${p.name}"><i class="fas fa-heart"></i></button>
+            </div>`;
+          // favorite toggle
+          li.querySelector('.favorite-btn').addEventListener('click',e=>{
+            e.stopPropagation();
+            const name=e.currentTarget.dataset.name;
+            favorites = favorites.includes(name)
+              ? favorites.filter(n=>n!==name)
+              : [...favorites,name];
+            localStorage.setItem('favorites',JSON.stringify(favorites));
+            render();
+          });
+          // open modal
+          li.addEventListener('click',()=>openModal(p));
+          listEl.appendChild(li);
         });
-    }
-    function openModal(p) { currentPilot = p; modalName.textContent = p.name; modalServices.textContent = 'Services: ' + p.services.join(', '); modalBio.textContent = p.bio; modalImg.src = imageMap[p.name] || ''; modalOverlay.classList.remove('hidden'); }
-    document.getElementById('modal-close').onclick = () => modalOverlay.classList.add('hidden');
-    selectPayBtn.onclick = () => { if (!currentPilot) { alert('Please select a pilot first.'); return; } modalOverlay.classList.add('hidden'); document.getElementById('pay-pilot').textContent = currentPilot.name; document.getElementById('payment-options').innerHTML = paymentMethods.map(m => `<label><input type=\"radio\" name=\"payment\" value=\"${m}\"/>${m}</label>`).join(''); showSection('payment'); };
-    document.getElementById('back-to-services').onclick = () => showSection('services');
-    // Fallback for any broken images
-    document.addEventListener('DOMContentLoaded', () => {
-      document.querySelectorAll('img').forEach(img => {
-        img.onerror = () => { img.src = 'https://via.placeholder.com/80?text=Pilot'; };
+      }
+
+      // OPEN MODAL
+      function openModal(p){
+        current=p;
+        nameEl.textContent=p.name;
+        bioEl.textContent=p.bio;
+        servEl.textContent=p.services.join(', ');
+        revEl.textContent=`${p.reviews} reviews`;
+        timeSel.innerHTML=p.availability.map(t=>`<option>${t}</option>`).join('');
+        dateIn.value='';
+
+        chatHistory[p.name]=chatHistory[p.name]||[];
+        renderChat();
+
+        if(!map){
+          map=L.map(mapDiv).setView(p.coords,10);
+          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+          marker=L.marker(p.coords).addTo(map);
+        } else {
+          map.setView(p.coords,10);
+          marker.setLatLng(p.coords);
+        }
+
+        overlay.classList.add('active');
+      }
+
+      // RENDER CHAT
+      function renderChat(){
+        chatWin.innerHTML = (chatHistory[current.name]||[])
+          .map(m=>`<div class="chat-msg"><strong>${m.sender}:</strong> ${m.text}</div>`)
+          .join('');
+        chatWin.scrollTop=chatWin.scrollHeight;
+        localStorage.setItem('chatHistory',JSON.stringify(chatHistory));
+      }
+
+      // EVENTS
+      closeBtn.addEventListener('click',()=>overlay.classList.remove('active'));
+      overlay.addEventListener('click',e=>{ if(e.target===overlay) overlay.classList.remove('active'); });
+      document.addEventListener('keydown',e=>{
+        if(e.key==='Escape'&&overlay.classList.contains('active'))
+          overlay.classList.remove('active');
       });
+      sendBtn.addEventListener('click',()=>{
+        const txt=chatIn.value.trim(); if(!txt) return;
+        chatHistory[current.name].push({sender:'You',text:txt});
+        renderChat(); chatIn.value=''; 
+        setTimeout(()=>{
+          chatHistory[current.name].push({sender:current.name,text:'Thanks! Will be in touch.'});
+          renderChat();
+        },1000);
+      });
+      revBtn.addEventListener('click',()=>{
+        const text=revIn.value.trim(), rate=+rateSel.value;
+        if(!text) return;
+        const key='reviews_'+current.name;
+        const arr=JSON.parse(localStorage.getItem(key)||'[]');
+        arr.push({rating:rate,comment:text});
+        localStorage.setItem(key,JSON.stringify(arr));
+        revIn.value=''; render(); openModal(current);
+      });
+      bookBtn.addEventListener('click',()=>{
+        const d=dateIn.value, t=timeSel.value;
+        if(!d) return alert('Please pick a date');
+        alert(`Booked ${current.name} on ${d} at ${t}`);
+        overlay.classList.remove('active');
+  window.location.reload();  // ← refresh the page
+  window.location.reload();  // ← refresh the page
+  window.location.reload();  // ← refresh the page
+  window.location.reload();  // ← refresh the page
+      });
+      document.getElementById('prev-page').addEventListener('click',()=>{
+        page=Math.max(0,page-1); render();
+      });
+      document.getElementById('next-page').addEventListener('click',()=>{
+        page++; render();
+      });
+      srvFilter.addEventListener('change',()=>{ page=0; render(); });
+      sortSel.addEventListener('change',render);
+      minRat.addEventListener('input',()=>{ page=0; render(); });
+      nameSrc.addEventListener('input',()=>{ page=0; render(); });
+      radiusIn.addEventListener('input',()=>{
+        radiusVal.textContent=radiusIn.value; page=0; render();
+      });
+      favBtn.addEventListener('click',()=>{
+        showFav = !showFav;
+        favBtn.textContent = showFav ? 'Show All' : 'Show Favorites';
+        page=0; render();
+      });
+
+      // INITIAL RENDER
+      render();
     });
-    document.getElementById('back-to-pilots').onclick = () => showSection('pilots');
-    document.querySelector('#services .cards').onclick = e => { const card = e.target.closest('.card'); if (card) { selectedServiceEl.textContent = card.dataset.service; renderPilots(); searchInput.value = ''; showSection('pilots'); } };
-    searchInput.oninput = () => renderPilots(searchInput.value);
-    document.getElementById('confirm-payment').onclick = () => { if (!currentPilot) { alert('No pilot selected.'); showSection('pilots'); return; } const method = document.querySelector('input[name=\"payment\"]:checked'); if (!method) { alert('Please select a payment method.'); return; } alert(`Booking ${currentPilot.name} via ${method.value}`); };
-    showSection('services');
   </script>
 </body>
 </html>
